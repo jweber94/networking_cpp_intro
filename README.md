@@ -1,0 +1,3 @@
+# Networking introduction project
+This project is based on the video series of javidx9 (https://www.youtube.com/watch?v=2hNdkYInj4g&t=485s) to familiarize myself with networking in C++ and get a deeper understanding how to program networking applications on a very low level of abstraction. Also the most common issues are elaborated as well as discussed, how they could be solved, using the ```boost::asio``` library. The main takeaways are written down here in the ```README.md```.
+The difference between my project and the one of javidx9 is, that he uses a Windows setup by incooperating Visual Studio and its build system, whereas I using a CMake project as my build system and working completly under linux (Ubuntu 20.04 LTS). So lets get started. ;-)  
