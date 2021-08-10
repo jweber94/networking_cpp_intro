@@ -24,3 +24,17 @@ The difference between my project and the one of javidx9 is, that he uses a Wind
     - Problem: After .run() was called and the I/O service object has nothing to do (i.e. all work that is defined by I/O objects like ```socket.async_read_some(...)```), the I/O service object ends its execution capability. So if we receive multiple data packages over the network over time, just the first packed will be received and the I/O service object will end. 
     - Solution: Give the I/O service object some idle work to do so that it does not end its execution capability until we say ```ioserv.stop()```.
 + You can see the code in ```main_client_async.cpp``` especially in line 49. 
++ Interesting remark: If we adjust the size of the buffer element where the received data is stored, we can define how many bytes of data every ```read_some()``` command should read from the socket
++ Asynchronous programming (in its common meaning as concurrent programming as well as with boost::asio) brings a lot of possabilities but also comes with the cost of more complexity, since things do not execute in the order that is shown in the source code
+    - Underlying Idea: Define something that should do work for us in the future 
+
+## Networking Library Project
+Besides the ```boost::asio``` explaination files, I want to develop my own version of the networking protocol from the javidx9 videos. Therefore, I implement a library, called custom_net_lib, which can be found in /src/common_net_lib and is the accordingly named library in the ```CMakeLists.txt``` file.
+To make the library accessable from outside the project, the interface headers are stored within the ```/include/custom_net_lib``` folder.
+
+### Message structure
+The message structure is defined as it is show in the following picture: (ref: https://www.youtube.com/watch?v=2hNdkYInj4g&t=485s)
+![message_structure](/images/message_structure.png)
+In the structure, the ID is meant to be defining the kind of the payload data. It should be an enum class, so the compiler can check,if we send valid IDs at compile time rather then on runtime. In order to make the message framework as flexible as possible, we define that enum class as a template, so the user can define its own IDs. 
+The header has always the same size in form of number of bytes that are associated with the header. By doing so, we can make it possible to divide the payload from the header easily from the payload within the code. 
+Since sockets can only transfer serialized data, the message type must have functions that can serialize and deserialize the stored data in the message instances. 

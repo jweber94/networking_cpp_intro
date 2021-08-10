@@ -9,7 +9,7 @@
 
 
 
-std::vector<char> global_receive_storage(1*1024); // storage of 20 Bytes 
+std::vector<char> global_receive_storage(1*1024); // storage of 1 kilobyte 
 
 
 void readout_handle(boost::system::error_code & ec, std::size_t length){
