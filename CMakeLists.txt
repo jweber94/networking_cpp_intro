@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.19.8)
 
 project(networking_cpp_intro)
 
@@ -13,14 +13,14 @@ find_package(GTest REQUIRED)
 include_directories(${GTEST_INCLUDE_DIR}) # include the gtest includes globally. It is possible to include it just for a target with the variable 
 
 # normal client
-#add_executable(http_client src/main_client.cpp)
-#target_link_libraries(http_client PRIVATE ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
-#target_include_directories(http_client PRIVATE ${Boost_INCLUDE_DIRS})
+add_executable(http_client src/main_client.cpp)
+target_link_libraries(http_client PRIVATE ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+target_include_directories(http_client PRIVATE ${Boost_INCLUDE_DIRS})
 
 # asynchrounous client
-#add_executable(async_http_client src/main_client_async.cpp)
-#target_link_libraries(async_http_client PRIVATE ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
-#target_include_directories(async_http_client PRIVATE ${Boost_INCLUDE_DIRS})
+add_executable(async_http_client src/main_client_async.cpp)
+target_link_libraries(async_http_client PRIVATE ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+target_include_directories(async_http_client PRIVATE ${Boost_INCLUDE_DIRS})
 
 # custom networking library
 add_library(custom_net_lib INTERFACE) #/src/custom_net_lib/*.cpp /src/custom_net_lib/*.hpp)

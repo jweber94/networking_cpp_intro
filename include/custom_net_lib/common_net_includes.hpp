@@ -14,8 +14,7 @@
 #include <cstdint>
 
 // asio includes
-#include <boost/asio.hpp>
-#include <boost/asio/ts/buffer.hpp>
-#include <boost/asio/ts/internet.hpp>
+//#include <boost/asio.hpp>
+//#include <boost/asio/buffer.hpp>
 
 #endif /* COMMONNETINCL */

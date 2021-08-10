@@ -55,7 +55,7 @@ namespace custom_netlib{
             
             msg.payload.resize(current_size + sizeof(PayloadType)); 
 
-            memcopy(msg.payload.data() + current_size, &data, sizeof(PayloadType)); // copy the data in the newly allocated vector space
+            memcpy(msg.payload.data() + current_size, &data, sizeof(PayloadType)); // copy the data in the newly allocated vector space
                 // std::memcopy(destination_ptr, source_ptr, number_of_bytes_to_copy) https://www.cplusplus.com/reference/cstring/memcpy/
                 //      Copies the given number of bytes to copy directly to the destination memory location and therefore, it is implicitly serialized to uint8_t 
                 // explaination of msg.payload.data() + current_size:
@@ -78,7 +78,7 @@ namespace custom_netlib{
             size_t start_idx_last_element = msg.payload.size() - sizeof(PayloadType); 
 
             // copy the data in byte form to the given aimed data
-            memcopy(&data, msg.payload.data() + start_idx_last_element, sizeof(PayloadType)); 
+            memcpy(&data, msg.payload.data() + start_idx_last_element, sizeof(PayloadType)); 
                 // This is the same principal as before: by copying directly in form of chars in the memory blocks, the data is implicitly deserialized
 
             // resize the vector after copying the extracted data

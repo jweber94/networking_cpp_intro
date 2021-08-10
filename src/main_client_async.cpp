@@ -4,8 +4,8 @@
 #include <chrono>
 
 #include <boost/asio/io_service.hpp>
-#include <boost/asio/ts/buffer.hpp>
-#include <boost/asio/ts/internet.hpp>
+#include <boost/asio/buffer.hpp>
+#include <boost/asio/ip/tcp.hpp>
 
 
 
@@ -46,7 +46,7 @@ int main(){
 
     boost::asio::io_service ioserv; // the I/O service object lets the program end as soon as there are no I/O services (and/or associated I/O objects) registered in the I/O service object
     
-    boost::asio::io_context::work idle_work(ioserv); // give the I/O service object some idle work (ref: CAUTION 2) 
+    boost::asio::io_service::work idle_work(ioserv); // give the I/O service object some idle work (ref: CAUTION 2) 
     // starting a thread that runs the I/O service object to run in parallel to the main thread
     std::thread thr([&](){
         ioserv.run(); 
@@ -61,8 +61,9 @@ int main(){
 
     
     boost::system::error_code ec; 
+    boost::asio::ip::address ip_address = boost::asio::ip::address::from_string("51.38.81.49", ec);
     // boost::asio::ip::tcp::endpoint tcp_endpt(boost::asio::ip::make_address("93.184.216.34", ec), 80);
-    boost::asio::ip::tcp::endpoint tcp_endpt(boost::asio::ip::make_address("51.38.81.49", ec), 80); // DeepL IP address  
+    boost::asio::ip::tcp::endpoint tcp_endpt(ip_address, 80); // DeepL IP address  
     boost::asio::ip::tcp::socket sock(ioserv); 
     
     // connect to the endpoint

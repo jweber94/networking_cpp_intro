@@ -4,8 +4,9 @@
 #include <chrono>
 
 #include <boost/asio/io_service.hpp>
-#include <boost/asio/ts/buffer.hpp>
-#include <boost/asio/ts/internet.hpp>
+#include <boost/asio/buffer.hpp>
+#include <boost/asio/ip/tcp.hpp>
+#include <boost/asio/ip/address.hpp>
 
 int main(){
     /*
@@ -15,7 +16,9 @@ int main(){
     boost::asio::io_service ioserv; // I/O servive object to manage the I/O services that correspond to the I/O objects
     boost::system::error_code ec; 
     
-    boost::asio::ip::tcp::endpoint tcp_endpt(boost::asio::ip::make_address("93.184.216.34", ec), 80);  // create a socket on port 80
+    boost::asio::ip::address ip_address = boost::asio::ip::address::from_string("93.184.216.34", ec);
+
+    boost::asio::ip::tcp::endpoint tcp_endpt(ip_address, 80);  // create a socket on port 80
     //boost::asio::ip::tcp::endpoint tcp_endpt(boost::asio::ip::make_address("127.0.0.1", ec), 80);  // does not work, since the localhost has no server on port 80
         // create an endpoint based on an IP address on port 80 (http port)
         // basically an endpoint is an address that can access multiple different ressources. It is used to connect to a server. --> Difference between "endpoint" and ressource: https://dev.to/asrar7787/rest-api-what-is-the-difference-between-endpoint-and-resource-3l1p
