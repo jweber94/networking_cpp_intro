@@ -28,6 +28,12 @@ The difference between my project and the one of javidx9 is, that he uses a Wind
 + Asynchronous programming (in its common meaning as concurrent programming as well as with boost::asio) brings a lot of possabilities but also comes with the cost of more complexity, since things do not execute in the order that is shown in the source code
     - Underlying Idea: Define something that should do work for us in the future 
 
+## Requirements
+* CMake: >= Version 3.11.4
+* gcc: >= Version 5.5.0
+* boost: >=  Version 1.72.0 (install a defined version of Boost: https://stackoverflow.com/questions/12578499/how-to-install-boost-on-ubuntu - the "build from source" explaination)
+* GTest: Version >= 1.11.0
+
 ## Networking Library Project
 Besides the ```boost::asio``` explaination files, I want to develop my own version of the networking protocol from the javidx9 videos. Therefore, I implement a library, called custom_net_lib, which can be found in /src/common_net_lib and is the accordingly named library in the ```CMakeLists.txt``` file.
 To make the library accessable from outside the project, the interface headers are stored within the ```/include/custom_net_lib``` folder.

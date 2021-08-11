@@ -6,7 +6,6 @@
 #include <thread>
 #include <mutex>
 #include <deque>
-#include <optional>
 #include <vector>
 #include <iostream>
 #include <algorithm>
@@ -14,7 +13,8 @@
 #include <cstdint>
 
 // asio includes
-//#include <boost/asio.hpp>
-//#include <boost/asio/buffer.hpp>
+#include <boost/asio.hpp>
+#include <boost/asio/buffer.hpp>
+#include <boost/asio/io_service.hpp>
 
 #endif /* COMMONNETINCL */

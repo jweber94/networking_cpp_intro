@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.19.8)
+cmake_minimum_required(VERSION 3.11.4)
 project(test_custom_networking)
 
 # this is the cmake that describes the tests
