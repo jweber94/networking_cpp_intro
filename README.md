@@ -40,7 +40,29 @@ To make the library accessable from outside the project, the interface headers a
 
 ### Message structure
 The message structure is defined as it is show in the following picture: (ref: https://www.youtube.com/watch?v=2hNdkYInj4g&t=485s)
-![message_structure](/images/message_structure.png)
+![message_structure](/images/message_structure.png) 
+(***image by javidx9***)
 In the structure, the ID is meant to be defining the kind of the payload data. It should be an enum class, so the compiler can check,if we send valid IDs at compile time rather then on runtime. In order to make the message framework as flexible as possible, we define that enum class as a template, so the user can define its own IDs. 
 The header has always the same size in form of number of bytes that are associated with the header. By doing so, we can make it possible to divide the payload from the header easily from the payload within the code. 
 Since sockets can only transfer serialized data, the message type must have functions that can serialize and deserialize the stored data in the message instances. 
+
+### Architecture
+* Client: 
+    - Is in its infinite loop and does the work it is supposed to do. During that time (i.e. until the .run() method of the I/O service object is called and so the handler of an endpoint is incooperated), the client could receive multiple messages from the server, so it need a queue to store the incoming messages before processing them.
+    - At the same time, the client could send requests to the server at any time. 
+    - Since clients could decide to do multiple requests to the server in a shorter amount of time then the request could be send throu the socket, the sending process also needs a queue for the outgoing requests.
+* Server: 
+    - Since the client could send requests to the server at any time and one server could talk to multiple clients, it also needs a queue for storing incoming messages that needs to be processed, while it is working on the latest request in the queue. 
+    - Since the server need to answer multiple clients or multiple requests in a shorter amount of time then the socket could process, a queue for the sending process is also needed ***for every connection*** (due to the fact, that the listening for incoming connections is on a different socket then the data exchange between the client and the server.) 
+    - In this example, the server should be capable to answer multiple/all clients at one time. Alternativly it can answer just one client. 
+    - All incoming requests to the server should be processed by just one server instance object, so all requests from multiple clients needs to be stored in ***one*** queue. 
+Out of this, the following Software structure is established (***image by javidx9***) 
+![server_client_architecture](/images/client_server_architecture.png)
+
+Overall components: 
+* We need thread save queues, since
+* The connections can be abstracted by a class in C++, since they are all of the same structure. (if you are looking from the server ***OR** the client instances)
+    - Also this object should abstract everything networking related away from the client and server applications
+* A client class needs to be implemented, since we want to create multiple clients for different use cases
+* A server class needs to be implented in order to realize the server functionallies
+* ***The template that is used in all template implementations is defining the ID datatype for the messages!***

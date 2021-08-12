@@ -27,6 +27,12 @@ add_library(custom_net_lib INTERFACE) #/src/custom_net_lib/*.cpp /src/custom_net
 target_include_directories(custom_net_lib INTERFACE include/custom_net_lib/ ${Boost_INCLUDE_DIRS})
 target_link_libraries(custom_net_lib INTERFACE ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 
+# test lib executable
+#add_executable(test_lib src/test_lib.cpp)
+#target_link_libraries(test_lib PRIVATE custom_net_lib ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+#target_include_directories(test_lib PRIVATE include ${Boost_INCLUDE_DIRS})
+
+
 # Tests
 add_subdirectory(tests)
 
