@@ -7,7 +7,7 @@
 
 namespace custom_netlib {
 
-    template <typename T> 
+    template <typename T> // here the template is used for the custom message datatype || the custom owned message datatype  
     class TsNetQueue {
         // make it a template since we want to make it deal with everything that needs to be thread save
         public: 

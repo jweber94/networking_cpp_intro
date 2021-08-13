@@ -65,4 +65,38 @@ Overall components:
     - Also this object should abstract everything networking related away from the client and server applications
 * A client class needs to be implemented, since we want to create multiple clients for different use cases
 * A server class needs to be implented in order to realize the server functionallies
-* ***The template that is used in all template implementations is defining the ID datatype for the messages!***
+* ***The template that is used in all template implementations is defining the ID datatype for the messages! (except within the thread safe queue, where the template describes the custom message datatype)***
+
+#### Server
+* The server always runs on a machine (in an infinite loop)
+* Two tasks: 
+    - Listening for new connections from a client
+    - Handle the application logic
+* Since clients can connect to the server at _any_ time, the connection listening should be done in a asynchronous manner (So the appication logic can be executed in parallel and the connection establishment is not blocking the application)
+    - --> Asynchronous connection handler is needed with asio
+* Also, the disconnection needs to be handled by the server and the client can disconnect at _any_ time!
+    - --> Asynchronous disconnection handler needs to be implemented with asio
+* ***We want to create an abstract base class of the server from which a CustomServer class can be derived. The base class will implement the networking interface, whereas the CustomServer implements the Server logic***
+
+![server_overview](/images/server_overview.png)
+
+***Asio implementation of the Server Networking part***
+* The asio I/O service object does not need idle work in the server implementation, since it always listens for new connections. 
+* Workflow of the networking implementation with asio: 
+    - The asio I/O service object (i.e. ```boost::asio::io_service```) is listening for connections on a defined port of the machine where the server is running on
+    - If a client asks for a connection to the server, a data-exchange socket will be opened (which is a different, OS defined port of the system, so the server can still listen to other new incoming connections) --> The creation of new connections needs to be in a different thread then the "listening for new connections"
+    - After the socket is created and the connection is established, a Connection-Instance of our library implementation needs to be created in order to exchange messages
+        - The connection object needs to check if the client is allowed to connect to the server, so that malicious clients/connection approaches can be rejected (e.g. banned IP-addresses)
+    - If the connection is not rejected, we want the connection object be placed in a container (e.g. std::vector) of established, valid connection that can be processed by the server (shown in red in the image)
+    - The arrow back to the "accept connection" block from the "establish with server" should describe the logic of the program!
+![server_networking_logic](/images/server_net_logic.png)
+* The connection object will be handled by a shared_ptr, so if the connection is rejected, no shared_ptr will be associated with the connection object and as soon as the shared pointer is going out of scope, the connection object gets deleted.
+    - Remark: In asynchronous programms, smartpointers are very useful, since things happening in parallel. Also the rule of five/move semantics plays a key role!
+* IMPORTANT: The I/O service object can handle multiple things in parallel. We can think of it like a sheduler for parallel tasks, but things could actually happen in parallel
+* *How to deal with reading messages:*
+    - Since the I/O service object can handle multiple asynchronous tasks, the Connection instances in the (red marked) container can ask it for processing the header of their associated request. 
+    - The method that reads/process the header can ask then the I/O service object for processing the payload
+    - After the payload was processed, it is stored in the "Incoming Queue", where the payload as well as the associated owner (i.e. the client) is saved for processing with the server logic
+![server_async_proc](/images/server_async_processing.png)
+
+* For Server, ```boost::asio``` has an ```boost::asio::ip::tcp::acceptor``` object, that needs an endpoint for its initialization and then realizes the functionallity of listening for new connections and create new socket objects where the data exchange can happen. This a a kind of "implicitly defining a socket" for the listening to new connections.
