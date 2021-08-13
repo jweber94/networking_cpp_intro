@@ -23,8 +23,10 @@ namespace custom_netlib {
 
             // methods
             bool ConnectToServer(); 
+            bool ConnectToClient(); 
+            uint16_t getID(); 
             bool Disconnect(); 
-            bool IsConnected() const; 
+            bool IsConnected() const; // returns true, if the data exchange socket is active/connected
 
             bool SendData(const message<T> & msg_to_send); 
 

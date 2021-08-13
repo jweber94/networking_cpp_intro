@@ -63,26 +63,73 @@ namespace custom_netlib {
                         if (onClientConnect(new_connection)){
                             // Deny the connection if the onClientConnect method delivers false --> A CustomServer class needs to override the onClientConnect method, since it delivers always false in its default implementation, so all connections get rejected (clean code principals) 
                             std::cout << "[SERVER]: Connection is valid - connection is active now!\n"; 
+                            connectionsQueue_.emplace_back(std::move(new_connection)); // add the connection object to the connections queue so there will be a shared_ptr after the execution of the lambda function and so, the connection object will not get deleted if the lambda function goes out of scope
+
+                            // assigning the identifyer 
+                            connectionsQueue.back()->ConnectToClient(idCounter_++);
+                            std::cout << "[CLIENT " << connectionsQueue.back()->getID() << "] connection approved\n"; 
+                        
                         } else {
                             std::cout << "[SERVER]: The server denied the connection!\n"
-
                         }
 
                     } else {
                         // if there is an error code, we want to display it
                         std::cerr << "[SERVER]: ERROR with establishing a new connection: " << ec.message() << "\n";  
                     }
-                    waitForClientConnection(); // recursivly calling the wait for new connection method --> A new asynchronous task will be registered by the I/O service object
+                    waitForClientConnection(); // calling the wait for new connection method again --> A new asynchronous task will be registered by the I/O service object
                 }); 
                     // Explaination: Every time when the asynchronous, out of process event is finished/executed, the given handler will be executed JUST ONE SINGLE TIME! The Given lambda function is the implementation of a boost::asio acceptor handler (https://www.boost.org/doc/libs/1_66_0/doc/html/boost_asio/reference/AcceptHandler.html)  
             }
 
             void sendMessageToClient(std::shared_ptr<ConnectionInterface<T> > client_connection, const message<T> & msg_to_send){
+                if (client_connection && client_connection->IsConnected()){
+                    // check if the client object is valid and if the connection to the data exchange socket is existand. If that is given, we can send the message throu the socket
+                    client_connection->SendData(msg_to_send); 
+                } else {
+                    // we have identified, that the client is not existant in out network anymore
+                    onClientDisconnect(client_connection); // since we could not connect to the client, we want to do something with that information (e.g. inform other clients that the client is not accessable anymore)
+                    client_connection.reset(); 
+
+                    // delelte the client from the connections queue
+                    connectionsQueue_.erase(std::remove(connectionsQueue_.begin(), connectionsQueue_.end(), client_connection), connectionsQueue_.end()); 
+                }
 
             }
 
             void sendMessageToAllClients(const message<T> & msg_to_send, std::shared_ptr<ConnectionInterface<T> > ignore_client){
                 // send a message to all connected clients except of one client (i.e. if one client does something, that should be messaged to all other client except for itself)
+
+                bool invalidClientExistFlag = false; 
+
+                for (auto & connIt: connectionQueue_){
+                    if (connIt && (connIt->IsConnected()) && (connIt != ignore_client)){
+                        connIt->Send(msg_to_send); 
+                    }
+                    else 
+                    {
+                        onClientDisconnect(client_connection); // since we could not connect to the client, we want to do something with that information (e.g. inform other clients that the client is not accessable anymore)
+                        client_connection.reset();
+                        invalidClientExistFlag = true;  
+                    }
+                }
+
+                if (invalidClientExistFlag){
+                    // delete the connections that were not accessable for the message sending. We do not want to delete an iterator while looping throu the queue, since this would invalidate the iterator during runtime - this results in undefined behaviour
+                    connectionsQueue_.erase(std::remove(connectionsQueue_.begin(), connectionsQueue_.end(), nullptr), connectionsQueue_.end()); 
+                }
+            }
+
+            void update(size_t numMaxMessages = -1){
+                // Method to explicitly process messages in the server logic. The parameter numMaxMessages defines the maximum number of messages that will be processed out of the incoming message queue on one call of this method. This is important because if there are always new messages from the clients, the update function will never return and therefor, the server logic will not continue with its work.
+                // CAUTION: setting size_t (which is a unsigned int in the background) to -1 result in the maximum number that size_t could handle (ref: integer overflow - https://en.wikipedia.org/wiki/Integer_overflow)
+                
+                size_t msg_count = 0; 
+                while(msg_count < numMaxMessages && !inMsgQueue_.isEmpty()){
+                    auto msg = inMsgQueue_.popFront(); // extract the first element of the incoming (thread save) message queue
+                    onMessage(msg.remote, msg.msg); 
+                    msg_count++; 
+                }
             }
 
         private: 
@@ -117,13 +164,12 @@ namespace custom_netlib {
             }
 
             // members
-            TsNetQueue<OwnedMessage<T> > inMsgQueue_; 
+            TsNetQueue<OwnedMessage<T> > inMsgQueue_;
+            std::deque<std::shared_ptr<ConnectionInterface<T>>> connectionsQueue_;  
                 // CAUTION: The order of the initialization is given by the order of the members in the code. The ioserv needs to be initalized BEFORE the thread is initialized where is should run
             boost::asio::io_context ioserv_; 
             std::thread thr_io_serv_; 
-
             boost::asio::ip::tcp::acceptor connection_acceptor_server_; 
-
             uint32_t idCounter_; // working with identify counters is much easyer then working with socket-addresses and even more secure (since we do not need to send socket information over the network)
     }; 
 
