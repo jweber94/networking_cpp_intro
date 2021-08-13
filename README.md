@@ -38,6 +38,8 @@ The difference between my project and the one of javidx9 is, that he uses a Wind
 Besides the ```boost::asio``` explaination files, I want to develop my own version of the networking protocol from the javidx9 videos. Therefore, I implement a library, called custom_net_lib, which can be found in /src/common_net_lib and is the accordingly named library in the ```CMakeLists.txt``` file.
 To make the library accessable from outside the project, the interface headers are stored within the ```/include/custom_net_lib``` folder.
 
+You can include the header based library in your own project by including ```#include "custom_net_lib.hpp"```
+
 ### Message structure
 The message structure is defined as it is show in the following picture: (ref: https://www.youtube.com/watch?v=2hNdkYInj4g&t=485s)
 ![message_structure](/images/message_structure.png) 
