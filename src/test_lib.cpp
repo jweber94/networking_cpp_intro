@@ -1,27 +1,53 @@
-#include <iostream>
 #include "custom_net_lib.hpp"
+#include <iostream>
 
 enum class CustomMsgTypes : uint32_t {
-    ServerAccept, 
-    ServerDeny, 
-    ServerPing, 
-    MessageAll, 
-    ServerMessage
-}; 
+  ServerAccept,
+  ServerDeny,
+  ServerPing,
+  MessageAll,
+  ServerMessage
+};
 
-class CustomServerLogic : public custom_netlib::ServerInterfaceClass<CustomMsgTypes>
-{
-    public: 
+class CustomServerLogic
+    : public custom_netlib::ServerInterfaceClass<CustomMsgTypes> {
+public:
+  CustomServerLogic(uint16_t n_port)
+      : custom_netlib::ServerInterfaceClass<CustomMsgTypes>(n_port) {
+    // Initializer list constructs the server interface with the given port
+    // number
+  }
 
-    private:
+protected:
+  // Implementations for the virtual methods of the server interface base class
+  virtual bool onClientConnect(
+      std::shared_ptr<custom_netlib::ConnectionInterface<CustomMsgTypes>>
+          client_ptr) {
+    return true; // accept all requested client connections
+  }
 
-}; 
+  virtual void onClientDisconnect(
+      std::shared_ptr<custom_netlib::ConnectionInterface<CustomMsgTypes>>
+          client_ptr) {}
 
+  virtual void
+  onMessage(std::shared_ptr<custom_netlib::ConnectionInterface<CustomMsgTypes>>
+                client,
+            custom_netlib::message<CustomMsgTypes> &msg_input) {}
+};
 
-int main(){
+int main() {
 
-    // TODO: Test the server code here --> https://www.youtube.com/watch?v=UbjxGvrDrbw (22:13 min)
-    std::cout << "Hello World!\n"; 
+  CustomServerLogic server_test(60000);
+  server_test.Start();
 
-    return 0; 
+  custom_netlib::message<CustomMsgTypes> msg_test;
+
+  std::cout << "Server was successfully created and already started!\n";
+
+  while (true) {
+    server_test.update();
+  }
+
+  return 0;
 }

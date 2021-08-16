@@ -2,15 +2,15 @@
 #define COMMONNETINCL
 
 // standart C++ includes from the STL
-#include <memory>
-#include <thread>
-#include <mutex>
-#include <deque>
-#include <vector>
-#include <iostream>
 #include <algorithm>
 #include <chrono>
 #include <cstdint>
+#include <deque>
+#include <iostream>
+#include <memory>
+#include <mutex>
+#include <thread>
+#include <vector>
 
 // asio includes
 #include <boost/asio.hpp>

@@ -2,8 +2,8 @@
 #define CUSTOMNETLIB
 
 /*
-* Include the complete header based library in you own project
-*/
+ * Include the complete header based library in you own project
+ */
 
 #include "common_net_includes.hpp"
 #include "connection_net_interface.hpp"
