@@ -6,6 +6,8 @@
 #include "net_message.hpp"
 #include "net_ts_queue.hpp"
 
+#include <string>
+
 namespace custom_netlib {
 
 template <typename T> class ClientBaseInterface {
@@ -28,22 +30,22 @@ public:
   bool Connect(const std::string &host, const uint16_t port) {
 
     try {
+
+      // use the system wide DNS server for resolving the IP-address with the given URL
+      boost::asio::ip::tcp::resolver url_resolver(ioserv_); 
+      boost::asio::ip::tcp::resolver::results_type endpts = url_resolver.resolve(host, std::to_string(port)); 
+        // The endpoint of a URL is acutally used to send data between the client and the server and if the resolver could not resolve a given URL, an exception will be thrown and get catched by the try-catch block
+
       // Try to establish a connection
-      connection_module_ = std::make_unique<ConnectionInterface<T>>();
-      // TODO
-
-      // the asio resolver can take a URL with a separated port and resolve it
-      // to an endpoint
-      boost::asio::ip::tcp::resolver url_res(ioserv_);
-      end_pt_to_connect_ = url_res.resolve(
-          host, std::to_string(port)); // if we ask the resolver for an invalid
-                                       // URL, then it will throw an exception
-
+      connection_module_ = std::make_unique<ConnectionInterface<T>>(ConnectionInterface<T>::Owner::client, ioserv_, boost::asio::ip::tcp::socket(ioserv_), input_message_queue_); // create an connection interface instance
+      connection_module_->ConnectToServer(endpts); // try to establish the connection with the connection instance 
+      
       thr_io_serv_ = std::thread([this]() { ioserv_.run(); });
     } catch (const std::exception &e) {
       std::cerr << "Client error: " << e.what() << '\n';
       return false;
     }
+    return true; 
   }
 
   void Disconnect() {

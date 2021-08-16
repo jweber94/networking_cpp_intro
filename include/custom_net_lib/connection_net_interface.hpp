@@ -34,9 +34,14 @@ public:
   }
 
   // methods
-  bool ConnectToServer(){
+  bool ConnectToServer(const boost::asio::ip::tcp::resolver::results_type & endpts){
       // Only necessary if the associated owner is a client
       if (owner_ == Owner::client){
+          boost::asio::async_connect(socket_connection_, endpts, [this](boost::system::error_code ec, boost::asio::ip::tcp::endpoint endpt){
+            if (!ec){
+              ReadHeader(); // if the asynchronous task, that was registered by the I/O context ioserv_, of connection to the server is finished, the connection handler will be executed within the thread where the ioserv_ is running in. Therefore, the ReadHeader() method is used to prime the I/O service object with another asynchronous task that should listen for and read out messages from the server  
+            }
+          }); // boost::asio connect handler (https://www.boost.org/doc/libs/1_71_0/doc/html/boost_asio/reference/ConnectHandler.html)
           std::cout << "[CLIENT]: Connect to server.\n";
       }
     return true; 

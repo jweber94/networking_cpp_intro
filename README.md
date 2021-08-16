@@ -102,3 +102,6 @@ Overall components:
 ![server_async_proc](/images/server_async_processing.png)
 
 * For Server, ```boost::asio``` has an ```boost::asio::ip::tcp::acceptor``` object, that needs an endpoint for its initialization and then realizes the functionallity of listening for new connections and create new socket objects where the data exchange can happen. This a a kind of "implicitly defining a socket" for the listening to new connections.
+
+## CAUTION with the custom message definition
+Since this is a custom (non RFC standardized) networking message protocol, we can _NOT_ use networking debug tools like PUTTY or Postman. We need to implement a custom server in order to test the communication interface between the client and the server. 
