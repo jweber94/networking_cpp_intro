@@ -31,21 +31,30 @@ public:
 
     try {
 
-      // use the system wide DNS server for resolving the IP-address with the given URL
-      boost::asio::ip::tcp::resolver url_resolver(ioserv_); 
-      boost::asio::ip::tcp::resolver::results_type endpts = url_resolver.resolve(host, std::to_string(port)); 
-        // The endpoint of a URL is acutally used to send data between the client and the server and if the resolver could not resolve a given URL, an exception will be thrown and get catched by the try-catch block
+      // use the system wide DNS server for resolving the IP-address with the
+      // given URL
+      boost::asio::ip::tcp::resolver url_resolver(ioserv_);
+      boost::asio::ip::tcp::resolver::results_type endpts =
+          url_resolver.resolve(host, std::to_string(port));
+      // The endpoint of a URL is acutally used to send data between the client
+      // and the server and if the resolver could not resolve a given URL, an
+      // exception will be thrown and get catched by the try-catch block
 
       // Try to establish a connection
-      connection_module_ = std::make_unique<ConnectionInterface<T>>(ConnectionInterface<T>::Owner::client, ioserv_, boost::asio::ip::tcp::socket(ioserv_), input_message_queue_); // create an connection interface instance
-      connection_module_->ConnectToServer(endpts); // try to establish the connection with the connection instance 
-      
+      connection_module_ = std::make_unique<ConnectionInterface<T>>(
+          ConnectionInterface<T>::Owner::client, ioserv_,
+          boost::asio::ip::tcp::socket(ioserv_),
+          input_message_queue_); // create an connection interface instance
+      connection_module_->ConnectToServer(
+          endpts); // try to establish the connection with the connection
+                   // instance
+
       thr_io_serv_ = std::thread([this]() { ioserv_.run(); });
     } catch (const std::exception &e) {
       std::cerr << "Client error: " << e.what() << '\n';
       return false;
     }
-    return true; 
+    return true;
   }
 
   void Disconnect() {
@@ -84,12 +93,11 @@ public:
     return input_message_queue_;
   }
 
-  void Send(const message<T>& msg)
-	{
-	if (isConnected()){
-    connection_module_->SendData(msg);
+  void Send(const message<T> &msg) {
+    if (isConnected()) {
+      connection_module_->SendData(msg);
+    }
   }
-	}
 
 private:
   TsNetQueue<OwnedMessage<T>> input_message_queue_;

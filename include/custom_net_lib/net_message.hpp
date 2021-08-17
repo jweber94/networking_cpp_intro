@@ -3,10 +3,10 @@
 
 #include "common_net_includes.hpp"
 //#include "connection_net_interface.hpp" // We can not do this, since this
-//would be a cycle dependency - we solve this by commenting this line out and
-//then forward-declare the ConnectionInterface for the OwnedMessage struct
+// would be a cycle dependency - we solve this by commenting this line out and
+// then forward-declare the ConnectionInterface for the OwnedMessage struct
 //(ref.:
-//https://stackoverflow.com/questions/2133250/x-does-not-name-a-type-error-in-c)
+// https://stackoverflow.com/questions/2133250/x-does-not-name-a-type-error-in-c)
 
 namespace custom_netlib {
 
@@ -48,8 +48,8 @@ template <typename T> struct message {
     // making it const in order to make clear, that the size request should not
     // edit the data in the message
     return payload.size(); // sizeof(message_header<T>) + payload.size(); //
-                           // std::vector has a method called size, which returns
-                           // the number of bytes of the vector element
+                           // std::vector has a method called size, which
+                           // returns the number of bytes of the vector element
   }
 
   // external access
@@ -66,9 +66,7 @@ template <typename T> struct message {
                                   // applicable to every serializable datatype,
                                   // so PayloadType is the variable for a
                                   // seriablizable datatype
-                                  friend message<T> &
-                                  operator<<(message<T> &msg,
-                                             const PayloadType &data) {
+  friend message<T> &operator<<(message<T> &msg, const PayloadType &data) {
     // makeing sure, that the given data is serializable
     static_assert(std::is_standard_layout<PayloadType>::value,
                   "Data is not serializable in a common way. Could not save "

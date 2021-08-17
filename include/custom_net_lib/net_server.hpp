@@ -66,28 +66,37 @@ public:
                                                  boost::asio::ip::tcp::socket
                                                      sock) {
       if (!ec) {
-        std::cout << "[SERVER]: A new connection was established: " << sock.remote_endpoint() << "\n";
-        
-        std::shared_ptr<ConnectionInterface<T> > new_connection = std::make_shared<ConnectionInterface<T>>(ConnectionInterface<T>::Owner::server, ioserv_, std::move(sock), inMsgQueue_);
+        std::cout << "[SERVER]: A new connection was established: "
+                  << sock.remote_endpoint() << "\n";
 
-        if (onClientConnect(new_connection)){
-            // Deny the connection if the onClientConnect method delivers false
-            //--> A CustomServer class needs to override the onClientConnect method,
-            //since it delivers always false in its default implementation, so all
-            //connections get rejected (clean code principals) 
-            std::cout << "[SERVER]: Connection is valid - connection is active now!\n";
-            connectionsQueue_.emplace_back(std::move(new_connection)); // add
-                //the connection object to the connections queue so there will be a
-                //shared_ptr after the execution of the lambda function and so, the
-                //connection object will not get deleted if the lambda function goes out
-                //of scope
+        std::shared_ptr<ConnectionInterface<T>> new_connection =
+            std::make_shared<ConnectionInterface<T>>(
+                ConnectionInterface<T>::Owner::server, ioserv_, std::move(sock),
+                inMsgQueue_);
 
-            // assigning the identifyer
-            connectionsQueue_.back()->ConnectToClient(idCounter_++);
-            std::cout << "[CLIENT " << connectionsQueue_.back()->getID() << "] connection approved\n";
+        if (onClientConnect(new_connection)) {
+          // Deny the connection if the onClientConnect method delivers false
+          //--> A CustomServer class needs to override the onClientConnect
+          //method, since it delivers always false in its default
+          // implementation, so all connections get rejected (clean code
+          // principals)
+          std::cout
+              << "[SERVER]: Connection is valid - connection is active now!\n";
+          connectionsQueue_.emplace_back(std::move(
+              new_connection)); // add
+                                // the connection object to the connections
+                                // queue so there will be a shared_ptr after the
+                                // execution of the lambda function and so, the
+                                // connection object will not get deleted if the
+                                // lambda function goes out of scope
+
+          // assigning the identifyer
+          connectionsQueue_.back()->ConnectToClient(idCounter_++);
+          std::cout << "[CLIENT " << connectionsQueue_.back()->getID()
+                    << "] connection approved\n";
 
         } else {
-            std::cout << "[SERVER]: The server denied the connection!\n";
+          std::cout << "[SERVER]: The server denied the connection!\n";
         }
 
       } else {
@@ -160,7 +169,8 @@ public:
       // queue, since this would invalidate the iterator during runtime - this
       // results in undefined behaviour
       connectionsQueue_.erase(std::remove(connectionsQueue_.begin(),
-                                          connectionsQueue_.end(), nullptr), connectionsQueue_.end());
+                                          connectionsQueue_.end(), nullptr),
+                              connectionsQueue_.end());
     }
   }
 
@@ -230,7 +240,8 @@ protected:
   boost::asio::io_context ioserv_;
   std::thread thr_io_serv_;
   boost::asio::ip::tcp::acceptor connection_acceptor_server_;
-  uint32_t idCounter_; // working with identify counters is much easyer then working
+  uint32_t
+      idCounter_; // working with identify counters is much easyer then working
                   // with socket-addresses and even more secure (since we do not
                   // need to send socket information over the network)
 };
