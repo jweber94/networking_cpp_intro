@@ -33,7 +33,27 @@ protected:
   virtual void
   onMessage(std::shared_ptr<custom_netlib::ConnectionInterface<CustomMsgTypes>>
                 client,
-            custom_netlib::message<CustomMsgTypes> &msg_input) {}
+            custom_netlib::message<CustomMsgTypes> &msg_input) {
+              switch (msg_input.header.id)
+              {
+              case CustomMsgTypes::ServerPing :
+              {
+                std::cout << "[" << client->getID() << "]: Server ping\n"; 
+                client->SendData(msg_input); 
+                break;
+              }
+
+              case CustomMsgTypes::ServerDeny:
+              {
+                break; 
+              }    
+            
+              default:
+                {
+                  break;
+                }
+              }
+            }
 };
 
 int main() {

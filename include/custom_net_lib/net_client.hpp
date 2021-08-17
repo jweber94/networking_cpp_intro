@@ -84,6 +84,13 @@ public:
     return input_message_queue_;
   }
 
+  void Send(const message<T>& msg)
+	{
+	if (isConnected()){
+    connection_module_->SendData(msg);
+  }
+	}
+
 private:
   TsNetQueue<OwnedMessage<T>> input_message_queue_;
 
