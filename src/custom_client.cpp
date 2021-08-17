@@ -34,6 +34,12 @@ public:
     Send(msg);
   }
 
+  void MessageAll() {
+    custom_netlib::message<CustomMsgTypes> msg;
+    msg.header.id = CustomMsgTypes::MessageAll;
+    Send(msg);
+  }
+
 private:
 };
 
@@ -106,6 +112,7 @@ int main() {
         break;
       case 'm':
         std::cout << "message all\n";
+        client.MessageAll();
         break;
       case 's':
         std::cout << "server message\n";
@@ -138,6 +145,7 @@ int main() {
 
           auto msg_from_server = client.Incoming().popFront().msg;
           switch (msg_from_server.header.id) {
+
           case CustomMsgTypes::ServerPing: {
             std::chrono::system_clock::time_point response_time =
                 std::chrono::system_clock::now();
@@ -151,10 +159,18 @@ int main() {
             break;
           }
 
-          case CustomMsgTypes::ServerDeny: {
-            std::cout << "Server deny\n";
+          case CustomMsgTypes::MessageAll: {
+            uint32_t clientID;
+            msg_from_server >> clientID;
+            std::cout << "Hello from [" << clientID << "]\n";
             break;
           }
+
+          case CustomMsgTypes::ServerAccept: {
+            std::cout << "Server accepted connection.\n";
+            break;
+          }
+
           default: {
             std::cout << "Default case!\n";
             break;

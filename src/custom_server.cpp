@@ -23,25 +23,36 @@ protected:
   virtual bool onClientConnect(
       std::shared_ptr<custom_netlib::ConnectionInterface<CustomMsgTypes>>
           client_ptr) {
+    custom_netlib::message<CustomMsgTypes> msg;
+    msg.header.id = CustomMsgTypes::ServerAccept;
+    client_ptr->SendData(msg);
     return true; // accept all requested client connections
   }
 
   virtual void onClientDisconnect(
       std::shared_ptr<custom_netlib::ConnectionInterface<CustomMsgTypes>>
-          client_ptr) {}
+          client_ptr) {
+    std::cout << "Removing client [" << client_ptr->getID() << "]\n";
+  }
 
   virtual void
   onMessage(std::shared_ptr<custom_netlib::ConnectionInterface<CustomMsgTypes>>
                 client,
             custom_netlib::message<CustomMsgTypes> &msg_input) {
     switch (msg_input.header.id) {
+
     case CustomMsgTypes::ServerPing: {
       std::cout << "[" << client->getID() << "]: Server ping\n";
       client->SendData(msg_input);
       break;
     }
 
-    case CustomMsgTypes::ServerDeny: {
+    case CustomMsgTypes::MessageAll: {
+      std::cout << "[" << client->getID() << "]: Message all\n";
+      custom_netlib::message<CustomMsgTypes> msg;
+      msg.header.id = CustomMsgTypes::MessageAll;
+      msg << client->getID();
+      sendMessageToAllClients(msg, client); // just return the header
       break;
     }
 

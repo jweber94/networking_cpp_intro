@@ -77,7 +77,7 @@ public:
         if (onClientConnect(new_connection)) {
           // Deny the connection if the onClientConnect method delivers false
           //--> A CustomServer class needs to override the onClientConnect
-          //method, since it delivers always false in its default
+          // method, since it delivers always false in its default
           // implementation, so all connections get rejected (clean code
           // principals)
           std::cout
@@ -151,8 +151,10 @@ public:
     bool invalidClientExistFlag = false;
 
     for (auto &connIt : connectionsQueue_) {
-      if (connIt && (connIt->IsConnected()) && (connIt != ignore_client)) {
-        connIt->Send(msg_to_send);
+      if (connIt && (connIt->IsConnected())) {
+        if (connIt != ignore_client) {
+          connIt->SendData(msg_to_send);
+        }
       } else {
         onClientDisconnect(
             connIt); // since we could not connect to the client, we want to do
