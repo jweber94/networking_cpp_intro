@@ -22,6 +22,15 @@ template <typename T> struct message_header {
   T id{};
   uint32_t size = 0; // do NOT use size_t, since size_t is platform dependent,
                      // but we want an platform independent message protocol
+                     /* Security issue:
+                      *   If anything connects to the client or especially the server and sends it
+                      * something that does not contain a valid header, the size variable of the
+                      * message header will receive a wrong number which results in allocating
+                      * unnecessary amounts of data which can be a whole lot of memory --> try to
+                      * connect to the server with putty and try to send it a
+                      * 1111111111111111111111111111111 message-After this, it will be the most
+                      * memory allocating process on your computer
+                      */
 }; // Remark: In structs, everything is public unless it is defined differend
    // (in opposite of classes, where everything is private by default)
 

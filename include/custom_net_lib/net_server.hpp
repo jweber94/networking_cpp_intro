@@ -91,7 +91,7 @@ public:
                                 // lambda function goes out of scope
 
           // assigning the identifyer
-          connectionsQueue_.back()->ConnectToClient(idCounter_++);
+          connectionsQueue_.back()->ConnectToClient(this, idCounter_++);
           std::cout << "[CLIENT " << connectionsQueue_.back()->getID()
                     << "] connection approved\n";
 
@@ -176,7 +176,7 @@ public:
     }
   }
 
-  void update(size_t numMaxMessages = -1) {
+  void update(size_t numMaxMessages = -1, bool enable_waiting = false) {
     // Method to explicitly process messages in the server logic. The parameter
     // numMaxMessages defines the maximum number of messages that will be
     // processed out of the incoming message queue on one call of this method.
@@ -187,6 +187,12 @@ public:
     // size_t could handle (ref: integer overflow -
     // https://en.wikipedia.org/wiki/Integer_overflow)
 
+    // waiting until the input queue receives a message in order to not burn the
+    // CPU
+    if (enable_waiting) {
+      inMsgQueue_.wait();
+    }
+
     size_t msg_count = 0;
     while (msg_count < numMaxMessages && !inMsgQueue_.isEmpty()) {
       auto msg = inMsgQueue_.popFront(); // extract the first element of the
@@ -194,6 +200,16 @@ public:
       onMessage(msg.remote, msg.msg);
       msg_count++;
     }
+  }
+  virtual void
+  onClientValidated(std::shared_ptr<ConnectionInterface<T>> client) {
+    std::cout << "OnClientValidated!\n";
+    /*
+     * This happens AFTER the connection was established AND the handshake
+     * between the server and the client was validated. I.e a secure connecton
+     * is established and is now ready for the data exchange between the server
+     * and the client.
+     */
   }
 
 private:
@@ -208,6 +224,9 @@ protected:
      *
      * Needs to be overwritten by the CustomServer class (that inherits from
      * this class)
+     *
+     * This happens if anything (!) connects to the server. This happens BEFORE
+     * the connection is validated
      */
     return false;
   }

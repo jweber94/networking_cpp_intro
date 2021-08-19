@@ -7,6 +7,9 @@
 
 namespace custom_netlib {
 
+// forward declaration
+template <typename T> class ServerInterfaceClass;
+
 template <typename T>
 class ConnectionInterface
     : public std::enable_shared_from_this<ConnectionInterface<T>>
@@ -29,6 +32,22 @@ public:
         in_msg_queue_(input_queue) {
     std::cout << "Connection element created!\n";
     owner_ = parent;
+
+    // handshake initialization
+    if (owner_ == Owner::server) {
+      // generate the send out random data
+      handshake_out_ =
+          uint64_t(std::chrono::system_clock::now().time_since_epoch().count());
+      // calculate the correct result of puzzle that the client should solve
+      handshake_check_ = encrypt_handshake_data(handshake_out_);
+    } else {
+      // owner_ == Owner::client
+      // initialize the connection interfaces handshake members with default
+      // values, since we need to wait for the server to send us something for
+      // handshake_in_
+      handshake_out_ = 0;
+      handshake_check_ = 0;
+    }
   }
 
   virtual ~ConnectionInterface() {
@@ -38,21 +57,25 @@ public:
   // methods
   bool
   ConnectToServer(const boost::asio::ip::tcp::resolver::results_type &endpts) {
-    // Only necessary if the associated owner is a client
+    // Only necessary if the associated owner is a client --> Only called by
+    // clients => Here we can implement the handshake for the client side
     if (owner_ == Owner::client) {
       boost::asio::async_connect(
           socket_connection_, endpts,
           [this](boost::system::error_code ec,
                  boost::asio::ip::tcp::endpoint endpt) {
             if (!ec) {
-              ReadHeader(); // if the asynchronous task, that was registered by
-                            // the I/O context ioserv_, of connection to the
-                            // server is finished, the connection handler will
-                            // be executed within the thread where the ioserv_
-                            // is running in. Therefore, the ReadHeader() method
-                            // is used to prime the I/O service object with
-                            // another asynchronous task that should listen for
-                            // and read out messages from the server
+              ReadServerValidationRequest(); // calls ReadHeader() recursion
+                                             // implicizly // ReadValidation
+              // ReadHeader(); // if the asynchronous task, that was registered
+              // by
+              // the I/O context ioserv_, of connection to the
+              // server is finished, the connection handler will
+              // be executed within the thread where the ioserv_
+              // is running in. Therefore, the ReadHeader() method
+              // is used to prime the I/O service object with
+              // another asynchronous task that should listen for
+              // and read out messages from the server
             }
           }); // boost::asio connect handler
               // (https://www.boost.org/doc/libs/1_71_0/doc/html/boost_asio/reference/ConnectHandler.html)
@@ -61,15 +84,27 @@ public:
     return true;
   }
 
-  bool ConnectToClient(uint32_t u_id = 0) {
-    // Only necessary if the associated Owner is a server
+  bool ConnectToClient(custom_netlib::ServerInterfaceClass<T> *server,
+                       uint32_t u_id = 0) {
+    // Only necessary if the associated Owner is a server --> Only called by
+    // servers => Here we can implement the handshake for the server side
     if (owner_ == Owner::server) {
       std::cout << "[SERVER]: Connect to client.\n";
       if (socket_connection_.is_open()) {
         id_ = u_id;
-        ReadHeader(); // register the I/O object / I/O service within the I/O
-                      // service object of boost::asio --> We want our server to
-                      // read messages as soon as they appear on the socket
+
+        // send the handshake data before the server reads the header in the
+        // normal way
+        SendValidationData(); // WriteValidation
+
+        // read the response from the client in order to check if the puzzle was
+        // solved successfully
+        ReadAndCheckValidation(server); // calls ReadHeader() recursion
+                                        // implicizly // ReadValidation
+
+        // ReadHeader(); // register the I/O object / I/O service within the I/O
+        // service object of boost::asio --> We want our server to
+        // read messages as soon as they appear on the socket
       }
     }
     return true;
@@ -249,6 +284,92 @@ public:
         });
   }
 
+  // security methods
+  uint64_t encrypt_handshake_data(uint64_t input) {
+    // input needs to be 8 bytes of data
+    uint64_t out = input ^ 0xDEADBEEDC0DECAFE;
+    out = (out & 0xF0F0F0F0F0F0F0) >> 4 | (out & 0xF0F0F0F0F0F0F0) << 4;
+    return out ^ 0xC0DEFACE12345678;
+    // IDEA: One of the hexadecimal constants could contain a version number on
+    // a dedicated digit. This can be done in order to check that just the
+    // correct client version can communicate with the correct server version
+  }
+
+  void ReadServerValidationRequest() {
+    // ReadValidation
+    std::cout << "Read the random number from the server and calculate the "
+                 "handshake_check_.\n";
+    boost::asio::async_read(
+        socket_connection_,
+        boost::asio::buffer(&handshake_in_, sizeof(uint64_t)),
+        [this](boost::system::error_code ec, std::size_t length) {
+          if (!ec) {
+            handshake_out_ = encrypt_handshake_data(
+                handshake_in_);   // calculate the puzzle on the client side
+            SendValidationData(); // send the solved puzzle out to the server
+          } else {
+            std::cout << "Client disconnected (ReadServerValidationRequest)\n";
+            socket_connection_.close();
+          }
+        });
+  }
+
+  void SendValidationData() {
+    // WriteValidation
+    boost::asio::async_write(
+        socket_connection_,
+        boost::asio::buffer(&handshake_out_, sizeof(uint64_t)),
+        [this](boost::system::error_code ec, std::size_t length) {
+          if (!ec) {
+            std::cout << "Sending the puzzle input to the client in order to "
+                         "request the handshake.\n";
+            if (owner_ == Owner::client) {
+              // After the client send back the calculated validation data, we
+              // want to listen for the server to talk with us
+              ReadHeader();
+            }
+          } else {
+            socket_connection_.close();
+          }
+        });
+  }
+
+  void ReadAndCheckValidation(
+      custom_netlib::ServerInterfaceClass<T> *server = nullptr) {
+    // ReadValidation()
+    std::cout << "Checking if the client successfully solved the puzzle.\n";
+    boost::asio::async_read(
+        socket_connection_,
+        boost::asio::buffer(&handshake_in_, sizeof(uint64_t)),
+        [this, server](boost::system::error_code ec, std::size_t length) {
+          if (!ec) {
+            if (handshake_in_ == handshake_check_) {
+              // success in validating the client
+              std::cout << "Client solved the puzzle successfully. Connection "
+                           "validated!\n";
+              server->onClientValidated(
+                  this->shared_from_this()); // Do whatever you want to do in
+                                             // your server logic after the
+                                             // connection to the client has
+                                             // been validated
+
+              // wait for new messages from the client
+              ReadHeader();
+            } else {
+              // This is what happens, if the connection could not be validated
+              // (i.e. an attacker has failed to enter our system --> e.g.
+              // banning the clients IP address from communicating with the
+              // server in the future)
+              std::cout << "Client failed to validate!\n";
+              socket_connection_.close();
+            }
+          } else {
+            std::cout << "Client disconnected (ReadServerValidationRequest)\n";
+            socket_connection_.close();
+          }
+        });
+  }
+
 protected:
   boost::asio::ip::tcp::socket socket_connection_;
   boost::asio::io_context
@@ -268,6 +389,11 @@ protected:
   uint32_t id_ = 0; // store the identifyer of the client associated with the
                     // connection object
   message<T> tmp_input_msg_;
+
+  // handshake membervariables
+  uint64_t handshake_out_;
+  uint64_t handshake_in_;
+  uint64_t handshake_check_;
 };
 
 } // namespace custom_netlib

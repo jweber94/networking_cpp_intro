@@ -71,7 +71,7 @@ int main() {
   std::cout << "Server was successfully created and already started!\n";
 
   while (true) {
-    server_test.update();
+    server_test.update(-1, true);
   }
 
   return 0;

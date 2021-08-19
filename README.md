@@ -105,3 +105,25 @@ Overall components:
 
 ## CAUTION with the custom message definition
 Since this is a custom (non RFC standardized) networking message protocol, we can _NOT_ use networking debug tools like PUTTY or Postman. We need to implement a custom server in order to test the communication interface between the client and the server. 
+
+## Cyber Security 
+Especially the server is a dedicated aim for cyber attacks. Therefore, a client-server handshake is implemented. The main issue with the server code in its plain working form is, that he listens for new connections and if he receives a message, it trys to read the header of the message. Right after reading the ID, the size of the payload is read out. If there is a malicious message with a much to big size of the payload, the size will be allocated on the system which can course memory issues. Also there is a possability for injecting malicious instructions after a buffer overflow and other security vulnerabilities.
+
+In order to solve that problem, a validation process after requesting a connction from the client to the server needs to be established. The basic princaple of doing such a handshake is to send the client a message with a puzzle that the client has to solve. Then, the client solves the puzzle and sends its solution back to the client and if the server can confirm that the client successfully solved the puzzle, it will aknowlage the connection and the message exchange can take place. 
+This process is visualized within the following picture (extracted from https://www.youtube.com/watch?v=hHowZ3bWsio&t=272s):
+![client_validation](/images/client_validation.png)
+If a client can not sucessfully validate the connection for multiple times, it is possable to put its IP-adress on a blacklist from which all attempts will be immediatly get rejected. (Maybe just internally, so that the attacker will not recognize it.)
+If you want to be even more secure, we can implement that the validation process should be renewed all _N_ messages or all _t_ seconds.
+
+A secure validation process looks as the following: (also extracted from https://www.youtube.com/watch?v=hHowZ3bWsio&t=272s)
+![secure_validation](/images/secure_validation.png)
+The aim of a secure handshake is to make it as hard as possable to try out, what the protocol does behind the scenes, since we can read the messages in clear text during the handshake. Modern appraches use randomly generated data/numbers. The randomly generated data is then processed by the server with a function that is also known to the client (but ***NOT*** to any other programmers/hackers). The client receives the random data, calculates the same function on the client side and sends its result back to the server. The server looks if the result that he received from the client is equal to his calculation and if this is the case, the client is a validated communication partner.   
+
+The benefit of working with random data that is generated on the server side of the communication is, that an attacker/hacker could not reproduce the inputs that easy so he could not look what happens, if he changes a bit/bit shifts, additions, ... in the handshake messages. Current reseach is working on good encryption functions ```f(x)``` as the "puzzle" that gets solved by the client (as well as the server).
+
+Tipp: Within the encryption, you can define a digit of one of the hexadecimal constants with the release version number of the code. By doing this, you can prevent old versions of the client from exchanging data with a newer/other version of the server.  
+
+## ToDos for the Udacity capstone 
+* Implement a Message interface where the clients can send user inputs to each other and to all in the chat
+* Use ```boost::program_options``` to setup a flexible port where the server should listen for new connections via the command line
+* Document the work within a clean ```README.md``` and clean up some comments within the code in order to hand the project in 
