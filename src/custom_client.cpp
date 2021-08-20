@@ -5,6 +5,7 @@
 #include <set>
 #include <stdio.h>
 #include <thread>
+#include <boost/program_options.hpp>
 
 std::set<char> possable_inputs{'a', 'd', 'p', 'm',
                                's', 'q', ''}; // The last element is ctrl+c
@@ -72,10 +73,32 @@ template <typename R> bool is_ready(std::future<R> const &f) {
   return f.wait_for(std::chrono::seconds(0)) == std::future_status::ready;
 }
 
-int main() {
+int main(int argc, const char *argv[]) {
+
+  // command line parser
+  uint32_t port_num = 0;
+  std::string ip_addr = "127.0.0.1";  
+  boost::program_options::options_description desc{
+      "Options for the chatbot client."};
+  boost::program_options::variables_map vm;
+
+  desc.add_options()(
+        "help,h", "Help and overview of all possible command line options")(
+        "port,p",
+        boost::program_options::value<uint32_t>()->default_value(60000),
+        "Port where the client should try to connect to the server.")
+        ("addr,a", boost::program_options::value<std::string>()->default_value("127.0.0.1"), "IP-address where the client should try to connect to find the server.");
+
+    boost::program_options::store(
+        boost::program_options::parse_command_line(argc, argv, desc), vm);
+    boost::program_options::notify(vm);
+
+    ip_addr = vm["addr"].as<std::string>();
+    port_num = vm["port"].as<uint32_t>(); 
 
   CustomClient client;
-  client.Connect("127.0.0.1", 60000);
+  //client.Connect("127.0.0.1", 60000);
+  client.Connect(ip_addr, port_num); 
 
   char input_character =
       'y'; // default value to not get randomly blocked since we are not under
