@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.11.4)
 
 project(networking_cpp_intro)
 
-find_package(Boost REQUIRED)
+find_package(Boost COMPONENTS program_options filesystem REQUIRED)
 find_package(Threads REQUIRED)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")

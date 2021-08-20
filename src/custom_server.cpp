@@ -82,6 +82,11 @@ int main(int argc, const char *argv[]) {
 
     port_num = vm["port"].as<uint32_t>();
 
+  if (vm.count("help")) {
+      std::cout << desc << "\n";
+      exit(0);
+  }
+
   //CustomServerLogic server_test(60000);
   CustomServerLogic server_test(port_num); 
   server_test.Start();

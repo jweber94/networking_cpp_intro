@@ -126,4 +126,5 @@ Tipp: Within the encryption, you can define a digit of one of the hexadecimal co
 ## ToDos for the Udacity capstone 
 * Implement a Message interface where the clients can send user inputs to each other and to all in the chat
 * Use ```boost::program_options``` to setup a flexible port where the server should listen for new connections via the command line
+    - Check the "Connection success" message of the client and print out the port and IP addresses after handing over the input parameters/starting the applications
 * Document the work within a clean ```README.md``` and clean up some comments within the code in order to hand the project in 

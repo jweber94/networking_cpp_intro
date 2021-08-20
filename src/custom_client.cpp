@@ -96,6 +96,11 @@ int main(int argc, const char *argv[]) {
     ip_addr = vm["addr"].as<std::string>();
     port_num = vm["port"].as<uint32_t>(); 
 
+    if (vm.count("help")) {
+      std::cout << desc << "\n";
+      exit(0);
+    }
+
   CustomClient client;
   //client.Connect("127.0.0.1", 60000);
   client.Connect(ip_addr, port_num); 
