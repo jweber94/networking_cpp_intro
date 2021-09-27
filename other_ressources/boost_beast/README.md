@@ -8,3 +8,22 @@
 + The aim of ```boost::beast``` is to deliver a library that is able to be the basis of an application level library. So the ```beast``` components are well-suited for building upon them. 
 + Also, ```boost::beast``` is designed for handling multiple (thousands) of connections in server code and is optimized for runtime performance. 
 + All low level code like the socket interfaces for TCP (instead of UDP) and all other low level stuff, that was explained in the "networking in C" tutorial (https://medium.com/from-the-scratch/http-server-what-do-you-need-to-know-to-build-a-simple-http-server-from-scratch-d1ef8945e4fa) and protocol details are abstracted away by ```boost::beast```. This makes to code that is build upon ```beast``` better readable, maintainable and even faster.
+
+## HTTP Requests
++ Definition of a HTTP message with ```boost::beast```/a HTTP message in general: 
+    - https://www.boost.org/doc/libs/develop/libs/beast/doc/html/beast/using_http/protocol_primer.html
+    - A serialized HTTP message has a ```"\r\n"``` statement`at the end of every line.
+        - ```"\n"``` is the "new line" character
+        - ```\r``` is the carriage return character, which tells the terminal emulator that it should move the cursor to the beginning of the line. (Ref.: https://stackoverflow.com/questions/7372918/whats-the-use-of-r-escape-sequence)
+
+## Websocket
++ ```boost::beast``` can be used to create HTTP connections as well as Websocket connections. 
+    - The advantage of Websocket over HTTP is, that in Websocket the server could send the client messages without a previous request from the client. 
+    - Websocket, as well as HTTP, uses TCP/IP as its underlying communication protocoll, so it is an established connection  
+    - Ref.: https://de.wikipedia.org/wiki/WebSocket
++ Websocket is a refinement/subset of HTTP. At first you have to establish a HTTP connection and then request a websocket update throu the HTTP connection
+    - ***BUT*** ```boost::beast::http``` and ```boost::beast::websocket``` are two separate namespaces! 
+
+## HTTPS
++ You need a SSL (Secure Socket Layer) context to run ```boost::beast``` stream instances in an encrypted context.
+    - These context will get associated with the data exchange sockets within the ```boost::beast``` library in a similar way like it was done in plain ```boost::asio``` in the async I/O tutorial of dens website (https://dens.website/tutorials/cpp-asio/ssl-tls) 
