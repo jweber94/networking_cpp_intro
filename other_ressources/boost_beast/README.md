@@ -27,3 +27,19 @@
 ## HTTPS
 + You need a SSL (Secure Socket Layer) context to run ```boost::beast``` stream instances in an encrypted context.
     - These context will get associated with the data exchange sockets within the ```boost::beast``` library in a similar way like it was done in plain ```boost::asio``` in the async I/O tutorial of dens website (https://dens.website/tutorials/cpp-asio/ssl-tls) 
++ The only implementation difference between a HTTP and a HTTPS connection is
+    - You have to wrap the ```boost::beast::tcp_stream``` into a ```boost::beast::ssl_stream``` 
+    - You have to set the SSL settings for the SSL-Context object. 
+    - Client example: ```ssl_http_get_client.cpp```
+    - Server example: ```ssl_simple_http_server.cpp``` 
+
+### SSL 
++ If you are a client, for the most servers you need to set a Server Name Indication (short: SNI).
+    - Ref.: https://www.cloudflare.com/de-de/learning/ssl/what-is-sni/
+        - 
+
+## Important references
++ ```boost::asio``` documentation:  
+    - https://www.boost.org/doc/libs/1_75_0/doc/html/boost_asio/reference.html
++ ```boost::beast``` documentation:
+    - TODO
