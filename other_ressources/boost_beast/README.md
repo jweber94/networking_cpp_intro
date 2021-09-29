@@ -37,6 +37,10 @@
 + If you are a client, for the most servers you need to set a Server Name Indication (short: SNI).
     - Ref.: https://www.cloudflare.com/de-de/learning/ssl/what-is-sni/
         - 
+## Multi Threaded execution of ```boost::asio``` functions
++ A strand is used for synchronizing socket asynchronous read/write operations while using a thread pool for execution. 
++ It is the better utility then a common mutex for asynchronous execution, see: https://stackoverflow.com/questions/25363977/what-is-the-advantage-of-strand-in-boost-asio  
+    - We need one strand for one socket, such that no failures for reading and writeing will occure 
 
 ## Important references
 + ```boost::asio``` documentation:  

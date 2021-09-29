@@ -69,46 +69,6 @@ std::string path_cat(boost::beast::string_view base, boost::beast::string_view p
     return result; 
 }
 
-boost::beast::string_view mime_type(boost::beast::string_view path)
-{
-    // MIME = Multi Purpose Internet Mail Extension - allows to exchange diffent types of data between client and servers. This will be written to the header of the HTTP message (which might be important for DPI)
-    using boost::beast::iequals; 
-
-    auto const ext = [&path] {
-        auto const pos = path.rfind("."); // looking for the file extension within the requested ressource path (i.e. ,jpeg)
-
-        if (pos == boost::beast::string_view::npos)
-        {
-            return boost::beast::string_view {}; 
-        }
-        return path.substr(pos); // return everything from the string_view after (and including) the pos index until the end of the string_view 
-    } (); // ext is defined as a function pointer
-
-    // define the individual HTTP payload types according to the requested (and valid) data 
-    if(iequals(ext, ".htm"))  return "text/html";
-    if(iequals(ext, ".html")) return "text/html";
-    if(iequals(ext, ".php"))  return "text/html";
-    if(iequals(ext, ".css"))  return "text/css";
-    if(iequals(ext, ".txt"))  return "text/plain";
-    if(iequals(ext, ".js"))   return "application/javascript";
-    if(iequals(ext, ".json")) return "application/json";
-    if(iequals(ext, ".xml"))  return "application/xml";
-    if(iequals(ext, ".swf"))  return "application/x-shockwave-flash";
-    if(iequals(ext, ".flv"))  return "video/x-flv";
-    if(iequals(ext, ".png"))  return "image/png";
-    if(iequals(ext, ".jpe"))  return "image/jpeg";
-    if(iequals(ext, ".jpeg")) return "image/jpeg";
-    if(iequals(ext, ".jpg"))  return "image/jpeg";
-    if(iequals(ext, ".gif"))  return "image/gif";
-    if(iequals(ext, ".bmp"))  return "image/bmp";
-    if(iequals(ext, ".ico"))  return "image/vnd.microsoft.icon";
-    if(iequals(ext, ".tiff")) return "image/tiff";
-    if(iequals(ext, ".tif"))  return "image/tiff";
-    if(iequals(ext, ".svg"))  return "image/svg+xml";
-    if(iequals(ext, ".svgz")) return "image/svg+xml";
-    return "application/text";
-
-}
 
 /*
  * ---------------------------------------------------------------------------
@@ -187,52 +147,52 @@ void handle_request(boost::beast::string_view doc_root, boost::beast::http::requ
         path.append("index.html"); 
     } 
 
-    // try to open the requested ressource
+    // try to open the requested file
     boost::system::error_code ec; 
-    boost::beast::http::file_body::value_type body;
-    body.open(path.c_str(), boost::beast::file_mode::scan, ec);
+    boost::beast::http::file_body::value_type body; 
+    body.open(path.c_str(), boost::beast::file_mode::scan, ec); 
 
-    // case 1: Requested a not valid ressource
-    if (ec == boost::errc::no_such_file_or_directory)
+    // case 1: Requested ressource not found
+    if (ec == boost::beast::errc::no_such_file_or_directory)
     {
         return send(not_found(request.target())); 
-    } 
+    }
 
-    // case 2: An unknown error occured
+    // case 2: Undefined server error
     if (ec)
     {
         return send(server_error(ec.message())); 
     }
 
-    // case 3: A valid request was received
+    // case 3: Valid request that the server want to answer
+
     auto const size = body.size(); 
 
     // case 3.1: HEAD request
     if (request.method() == boost::beast::http::verb::head)
     {
-        boost::beast::http::response<boost::beast::http::empty_body> response(boost::beast::http::status::ok, request.version()); 
+        boost::beast::http::response<boost::beast::http::empty_body> response(boost::beast::http::status::ok, request.version());
 
-        response.set(boost::beast::http::fiel::server, BOOST_BEAST_VERSION_STRING);
+        response.set(boost::beast::http::field::server, BOOST_BEAST_VERSION_STRING);
         response.set(boost::beast::http::field::content_type, mime_type(path));
 
         response.content_length(size); 
-
+        
         response.keep_alive(request.keep_alive()); 
 
-        return send(std::move(response));   
-    } 
+        return send(std::move(response));    
+    }
 
     // case 3.2: GET request
-    boost::beast::http::response:<boost::beast::http::file::file_body> response(std::piecewise_construct, std::make_tuple(std::move(body), std::make_tuple(boost::beast::http::status::ok, request.version())));
+    boost::beast::http::response<boost::beast::http::file_body> response(std::piecewise_construct, std::make_tuple(std::move(body)), std::make_tuple(boost::beast::http::status::ok, request.version()));
 
     response.set(boost::beast::http::field::server, BOOST_BEAST_VERSION_STRING);
     response.set(boost::beast::http::field::content_type, mime_type(path));
 
-    response.content_length(size);
+    response.content_length(size); 
 
-    response.keep_alive(request.keep_alive());
+    response.keep_alive(request.keep_alive());    
 
-    return send(std::move(response));      
 
 } /* Handle request */
 
