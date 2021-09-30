@@ -42,6 +42,12 @@
 + It is the better utility then a common mutex for asynchronous execution, see: https://stackoverflow.com/questions/25363977/what-is-the-advantage-of-strand-in-boost-asio  
     - We need one strand for one socket, such that no failures for reading and writeing will occure 
 
+## Asynchronous ```boost::beast``` functions
++ The ```boost::beast::async_read()``` function needs a ```boost::beast::http::reponse``` object as well as a ```boost::beast::http::parser``` (which can be a ```boost::beast::flat_buffer``` instance (?)). 
+    - The response object is used to store the acutal response and the parser/buffer object is to store additional bytes that are transferred on top of the actutal response
+    - Ref.: https://stackoverflow.com/questions/66724298/what-do-i-need-to-do-to-make-boost-beast-http-parser-find-the-end-of-the-body and https://www.boost.org/doc/libs/1_66_0/libs/beast/doc/html/beast/ref/boost__beast__http__read/overload2.html
+
+
 ## Important references
 + ```boost::asio``` documentation:  
     - https://www.boost.org/doc/libs/1_75_0/doc/html/boost_asio/reference.html
